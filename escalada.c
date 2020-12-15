@@ -32,6 +32,22 @@ size_t pos(size_t m, size_t i, size_t j) {
     return i * m + j;
 }
 
+static inline attribute(pure, hot, nothrow)
+custo_t custo_em(const custo_t *custo, size_t m, size_t i, size_t j) {
+    return custo[pos(m, i, j)];
+}
+
+static inline attribute(const, hot, nothrow)
+custo_t min(custo_t c1, custo_t c2, custo_t c3) {
+    if (c1 < c2 && c1 < c3) {
+        return c1;
+    } else if (c2 < c3) {
+        return c2;
+    } else {
+        return c3;
+    }
+}
+
 static attribute(pure, hot, nothrow)
 custo_t min_custo(const uint8_t *parede, size_t n, size_t m) {
     if unlikely(n == 0 || m == 0) {
@@ -48,12 +64,26 @@ custo_t min_custo(const uint8_t *parede, size_t n, size_t m) {
 
     for (size_t i = n - 1; i > 0; i++) {
         for (size_t j = 0; j < m; j++) {
+            size_t ij = pos(m, i - 1, j);
+            custo_t c0 = (custo_t) parede[ij];
 
+            custo_t c1 = (j > 0)? custo_em(custo, m, i, j - 1) : UINT32_MAX;
+            custo_t c2 = custo_em(custo, m, i, j);
+            custo_t c3 = (j < m - 1)? custo_em(custo, m, i, j + 1) : UINT32_MAX;
+
+            custo[ij] = c0 + min(c1, c2, c3);
+        }
+    }
+
+    custo_t cmin = custo[pos(m, 0, 0)];
+    for (size_t j = 1; j < m; j++) {
+        if (cmin < custo[pos(m, 0, j)]) {
+            cmin = custo[pos(m, 0, j)];
         }
     }
 
     free(custo);
-    return UINT32_MAX;
+    return cmin;
 }
 
 #define ENTINV 0x1234
@@ -142,7 +172,7 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
 
-    custo_t custo = 0;
+    custo_t custo = min_custo(parede, n, m);
     free(parede);
 
 
