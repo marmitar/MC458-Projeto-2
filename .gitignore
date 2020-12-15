@@ -1,11 +1,8 @@
-kmin
-kmin.o
-kmin.out
+escalada
+escalada.o
+escalada.out
 show
 gen
-resultados.dat
-rotinas
-rotinas.o
 .vscode
 valgrind.txt
 *.valgrind
@@ -17,3 +14,4 @@ main.log
 main.synctex.gz
 _minted*/
 old.tex
+/saidas/

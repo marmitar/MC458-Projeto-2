@@ -11,15 +11,17 @@ LEVEL ?= 3
 DEBUG ?= -DNDEBUG -D_FORTIFY_SOURCE=0
 OPTFL ?= -march=native -mtune=native -pipe -fno-plt
 WARNINGS ?= -Wall -Werror -Wpedantic -Wunused-result
-CFLAGS ?= -std=gnu99 $(WARNINGS) $(DEBUG) -O$(LEVEL) $(OPTFL)
+CFLAGS ?= -std=c99 $(WARNINGS) $(DEBUG) -O$(LEVEL) $(OPTFL)
 
 # ARTIFACT
 PROG := escalada
+TEST := testes/run_tests.sh
 # SOURCE
 SRC := $(PROG).$(LANG)
+TST := saidas
 
 # GENERAL COMMANDS
-.PHONY: all run clean debug zip
+.PHONY: all run clean debug test
 
 all: $(PROG)
 
@@ -32,7 +34,10 @@ debug: OPTFL = -march=native
 debug: clean all
 
 clean:
-	rm -rf $(PROG) $(PROG).o
+	rm -rf $(PROG) $(PROG).o $(TST)
+
+test: $(PROG)
+	$(TEST)
 
 # BUILDING
 $(PROG): $(SRC)
