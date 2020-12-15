@@ -8,7 +8,7 @@ else
 endif
 # OPTIONS
 LEVEL ?= 3
-DEBUG ?= -DNDEBUG -D_FORTIFY_SOURCE=0
+DEBUG ?= -DNDEBUG -D_FORTIFY_SOURCE=1
 OPTFL ?= -march=native -mtune=native -pipe -fno-plt
 WARNINGS ?= -Wall -Werror -Wpedantic -Wunused-result
 CFLAGS ?= -std=c99 $(WARNINGS) $(DEBUG) -O$(LEVEL) $(OPTFL)
