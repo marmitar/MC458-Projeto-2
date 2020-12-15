@@ -134,20 +134,33 @@ custo_t min_custo(const perigo_t *parede, size_t n, size_t m) {
     // as linhas seguintes (de cima para baixo) são calculadas
     // com base nos caminhos já calculados
     for (size_t i = n - 1; i > 0; i--) {
-        for (size_t j = 0; j < m; j++) {
+        // custo dos caminhos possíveis a partir da cél. atual
+        // o caminho tem custo máximo quando é impossível
+        custo_t ce = CUSTO_MAX;      // esquerda
+        custo_t cs = CUSTO_MAX;      // superior
+        custo_t cd = custo[m*i + 0]; // direita
+
+        for (size_t j = 0; j < m - 1; j++) {
             size_t ij = m * (i - 1) + j;
             // custo da célula atual
             custo_t c0 = (custo_t) parede[ij];
 
             // custo dos caminhos possíveis a partir da cél. atual
             // o caminho tem custo máximo quando é impossível
-            custo_t c1 = (j > 0)? custo[m*i + j-1] : CUSTO_MAX;
-            custo_t c2 = custo[m*i + j];
-            custo_t c3 = (j < m - 1)? custo[m*i + j+1] : CUSTO_MAX;
+            ce = cs; cs = cd;
+            cd = custo[m*i + j+1];
 
             // o novo custo é o menor dos caminho e a célula atual
-            custo[ij] = c0 + min(c2, min(c1, c3));
+            custo[ij] = c0 + min(cs, min(ce, cd));
         }
+
+        // última célula da linha
+        ce = cs; cs = cd;
+        // não tem caminho á direita
+        cd = CUSTO_MAX;
+
+        custo_t c0 = (custo_t) parede[m*(i-1) + m-1];
+        custo[m*(i-1) + m-1] = c0 + min(cs, min(ce, cd));
     }
 
     // retorna o menor dos custos partindo da base da parede
