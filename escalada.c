@@ -55,10 +55,12 @@ static attribute(cold, nothrow)
 void imprime_erro(const char *prog) {
     switch (errno) {
         case 0:
-            fprintf(stderr, "%s: erro desconhecido\n", prog);
+            fputs(prog, stderr);
+            fputs(": erro desconhecido\n", stderr);
             break;
         case ENTINV:
-            fprintf(stderr, "%s: entrada inválida\n", prog);
+            fputs(prog, stderr);
+            fputs(": entrada inválida\n", stderr);
             break;
         default:
             perror(prog);
