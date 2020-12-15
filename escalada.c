@@ -1,8 +1,7 @@
 /**
- * Este arquivo pode ser usado como base para o seu codigo.
- * Preste especial atencao a funcao ja implementada "imprimeSaida". Esta função
- * deve ser usada para imprimir o resultado da execucao de cada algoritmo.
- */
+ * Tiago de Paula Alves - RA187679
+ * Projeto de Algoritmo com Implementação 2
+ * * * * * * * * * * * * * * * * * * * * * */
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -24,64 +23,146 @@
 #define unlikely(x) \
     (__builtin_expect((x), 0))
 
+// Erro de Entrada Inválida.
+#define ENTINV 0x1234
 
-typedef uint32_t custo_t;
 
-static inline attribute(const, hot, nothrow)
-size_t pos(size_t m, size_t i, size_t j) {
-    return i * m + j;
+// Custo ao longo de um caminho.
+typedef uint16_t custo_t;
+// Maior custo possível.
+#define CUSTO_MAX UINT16_MAX
+// Impressão de custo.
+#define PRIcusto PRIu16
+
+// Custo (perigo) de uma posição,
+typedef uint8_t perigo_t;
+
+
+static attribute(pure, hot, nothrow)
+custo_t min_custo(const perigo_t *parede, size_t n, size_t m);
+
+static attribute(malloc, cold, nothrow)
+perigo_t *leitura_parede(size_t *n, size_t *m);
+
+
+/* * * * */
+/* MAIN  */
+
+static attribute(cold, nothrow)
+/**
+ * Apresenta o erro marcado em `errno` na saída de erro.
+ */
+void imprime_erro(const char *prog) {
+    switch (errno) {
+        case 0:
+            fprintf(stderr, "%s: erro desconhecido\n", prog);
+            break;
+        case ENTINV:
+            fprintf(stderr, "%s: entrada inválida\n", prog);
+            break;
+        default:
+            perror(prog);
+            break;
+    }
 }
 
+/* Main */
+int main(int argc, char const *argv[]) {
+    size_t n, m;
+    // leitura das dimensões e da matriz
+    perigo_t *parede = leitura_parede(&n, &m);
+    // problema de leitura
+    if unlikely(parede == NULL) {
+        imprime_erro(argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    // menor custo na parede
+    custo_t custo = min_custo(parede, n, m);
+    free(parede);
+    // erro interno do algoritmo
+    if unlikely(custo == CUSTO_MAX) {
+        imprime_erro(argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    printf("%"PRIcusto"\n", custo);
+    return EXIT_SUCCESS;
+}
+
+
+/* * * * * * */
+/* ALGORITMO */
+
 static inline attribute(const, hot, nothrow)
-custo_t min(custo_t c1, custo_t c2, custo_t c3) {
-    if (c1 < c2 && c1 < c3) {
-        return c1;
-    } else if (c2 < c3) {
-        return c2;
+/**
+ * Mínimo entre dois valores.
+ */
+custo_t min(custo_t a, custo_t b) {
+    if (a < b) {
+        return a;
     } else {
-        return c3;
+        return b;
     }
 }
 
 static attribute(pure, hot, nothrow)
-custo_t min_custo(const uint8_t *parede, size_t n, size_t m) {
+/**
+ * Encontra o custo do caminho de menro custo na parede.
+ *
+ * A matriz de custo `parede` deve ser representada
+ * em row-major.
+ *
+ * Retorna `CUSTO_MAX` em caso de erro.
+ */
+custo_t min_custo(const perigo_t *parede, size_t n, size_t m) {
+    // sem custo para matrizes vazias
     if unlikely(n == 0 || m == 0) {
         return 0;
     }
 
+    // memorização do menor custo de i,j até o topo
+    // representada em row-major
     custo_t *custo = malloc(n * m * sizeof(custo_t));
-    if unlikely(custo == NULL) return UINT32_MAX;
+    if unlikely(custo == NULL) return CUSTO_MAX;
 
+    // na última linha, o custo é apenas da própria célula
     for (size_t j = 0; j < m; j++) {
         const size_t i = n - 1;
-        custo[pos(m, i, j)] = (custo_t) parede[pos(m, i, j)];
+        custo[m*i + j] = (custo_t) parede[m*i + j];
     }
-
+    // as linhas seguintes (de cima para baixo) são calculadas
+    // com base nos caminhos já calculados
     for (size_t i = n - 1; i > 0; i--) {
         for (size_t j = 0; j < m; j++) {
-            size_t ij = pos(m, i - 1, j);
+            size_t ij = m * (i - 1) + j;
+            // custo da célula atual
             custo_t c0 = (custo_t) parede[ij];
 
-            custo_t c1 = (j > 0)? custo[pos(m, i, j - 1)] : UINT32_MAX;
-            custo_t c2 = custo[pos(m, i, j)];
-            custo_t c3 = (j < m - 1)? custo[pos(m, i, j + 1)] : UINT32_MAX;
+            // custo dos caminhos possíveis a partir da cél. atual
+            // o caminho tem custo máximo quando é impossível
+            custo_t c1 = (j > 0)? custo[m*i + j-1] : CUSTO_MAX;
+            custo_t c2 = custo[m*i + j];
+            custo_t c3 = (j < m - 1)? custo[m*i + j+1] : CUSTO_MAX;
 
-            custo[ij] = c0 + min(c1, c2, c3);
+            // o novo custo é o menor dos caminho e a célula atual
+            custo[ij] = c0 + min(c2, min(c1, c3));
         }
     }
 
-    custo_t cmin = custo[pos(m, 0, 0)];
+    // retorna o menor dos custos partindo da base da parede
+    custo_t cmin = custo[m*0 + 0];
     for (size_t j = 1; j < m; j++) {
-        if (custo[pos(m, 0, j)] < cmin) {
-            cmin = custo[pos(m, 0, j)];
-        }
+        cmin = min(cmin, custo[m*0 + j]);
     }
 
     free(custo);
     return cmin;
 }
 
-#define ENTINV 0x1234
+
+/* * * * * * * * * * */
+/* LEITURA DOS DADOS */
 
 static attribute(format(scanf, 2, 3), nonnull, cold, nothrow)
 /**
@@ -96,8 +177,7 @@ static attribute(format(scanf, 2, 3), nonnull, cold, nothrow)
 bool cscanf(unsigned expect, const char *restrict fmt, ...) {
         va_list args;
         va_start(args, fmt);
-        // usa `vfscanf` para tratar argumentos
-        // variados com mais facilidade
+        //`vscanf` para tratar argumentos variados
         int rv = vscanf(fmt, args);
         va_end(args);
 
@@ -113,82 +193,40 @@ bool cscanf(unsigned expect, const char *restrict fmt, ...) {
         return true;
 }
 
-
-static inline attribute(malloc, cold, nothrow)
-uint8_t *ler_dados(size_t n, size_t m) {
-    if unlikely(n == 0 || m == 0) {
+static attribute(malloc, cold, nothrow)
+/**
+ * Leitura das dimensões e dos custos da parede.
+ *
+ * A matriz é armazenada em row-major.
+ *
+ * Retorna NULL em caso de erro.
+ */
+perigo_t *leitura_parede(size_t *n, size_t *m) {
+    if unlikely(!cscanf(2, "%zu %zu", n, m)) {
+        // erro de leitura
+        return NULL;
+    }
+    size_t N = *n, M = *m;
+    if unlikely(N == 0 || M == 0) {
+        // aloca um byte, para manter um ponteiro
+        // válido para `free`
         return malloc(1);
     };
 
-    uint8_t *dados = malloc(n * m * sizeof(uint8_t));
-    if unlikely(dados == NULL) return NULL;
+    perigo_t *custos = malloc(N * M * sizeof(perigo_t));
+    // erro de alocação
+    if unlikely(custos == NULL) return NULL;
 
-    for (size_t i = 0; i < n * m; i++) {
-        uint8_t custo;
+    // leitura da matriz
+    for (size_t i = 0; i < N * M; i++) {
+        perigo_t custo;
         if unlikely(!cscanf(1, "%"SCNu8, &custo)) {
-            free(dados);
+            // erro de leitura
+            free(custos);
             return NULL;
         };
 
-        dados[i] = custo;
+        custos[i] = custo;
     }
-    return dados;
-}
-
-static attribute(cold, nothrow)
-uint8_t *ler_parede(size_t *n, size_t *m) {
-    if unlikely(!cscanf(2, "%zu %zu", n, m)) {
-        return NULL;
-    }
-
-    return ler_dados(*n, *m);
-}
-
-static attribute(cold, nothrow)
-void imprime_erro(const char *prog) {
-    switch (errno) {
-        case 0:
-            fprintf(stderr, "%s: erro desconhecido\n", prog);
-            break;
-        case ENTINV:
-            fprintf(stderr, "%s: entrada inválida\n", prog);
-            break;
-        default:
-            perror(prog);
-            break;
-    }
-}
-
-// void print_mat(const uint8_t *parede, size_t n, size_t m) {
-//     printf("n=%zu,  m=%zu\n\n", n, m);
-
-//     for (size_t i = 0; i < n; i++) {
-//         printf("%zu:\t", i);
-//         for (size_t j = 0; j < m; j++) {
-//             printf(" %hhu", parede[pos(m, i, j)]);
-//         }
-//         printf("\n");
-//     }
-// }
-
-int main(int argc, char const *argv[]) {
-    size_t n, m;
-    uint8_t *parede = ler_parede(&n, &m);
-    if unlikely(parede == NULL) {
-        imprime_erro(argv[0]);
-        return EXIT_FAILURE;
-    }
-    // print_mat(parede, n, m);
-
-    custo_t custo = min_custo(parede, n, m);
-    free(parede);
-
-
-    if unlikely(custo == UINT32_MAX) {
-        imprime_erro(argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    printf("%"PRIu32"\n", custo);
-    return EXIT_SUCCESS;
+    return custos;
 }
