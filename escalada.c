@@ -72,7 +72,7 @@ custo_t min_custo(const uint8_t *parede, size_t n, size_t m) {
 
     custo_t cmin = custo[pos(m, 0, 0)];
     for (size_t j = 1; j < m; j++) {
-        if (cmin < custo[pos(m, 0, j)]) {
+        if (custo[pos(m, 0, j)] < cmin) {
             cmin = custo[pos(m, 0, j)];
         }
     }
