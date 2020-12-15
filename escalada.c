@@ -23,7 +23,7 @@
     (__builtin_expect((x), 0))
 
 
-typedef uint64_t custo_t;
+typedef uint32_t custo_t;
 
 typedef struct parede {
     size_t n, m;
@@ -68,13 +68,6 @@ int ler_parede(parede_t *parede) {
     return 0;
 }
 
-/**
- * Imprime o custo do caminho.
- */
-void imprime_saida(custo_t custo) {
-    printf("%"PRIu64"\n", custo);
-}
-
 void imprime_erro(const char *prog, int err) {
     switch (err) {
         case 0:
@@ -97,5 +90,15 @@ int main(int argc, char const *argv[]) {
         return EXIT_FAILURE;
     }
 
-    return EXIT_FAILURE;
+    custo_t custo = 0;
+    free(parede.dados);
+
+
+    if unlikely(custo == UINT32_MAX) {
+        imprime_erro(argv[0], -1);
+        return EXIT_FAILURE;
+    }
+
+    printf("%"PRIu32"\n", custo);
+    return EXIT_SUCCESS;
 }
