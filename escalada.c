@@ -32,11 +32,6 @@ size_t pos(size_t m, size_t i, size_t j) {
     return i * m + j;
 }
 
-static inline attribute(pure, hot, nothrow)
-custo_t custo_em(const custo_t *custo, size_t m, size_t i, size_t j) {
-    return custo[pos(m, i, j)];
-}
-
 static inline attribute(const, hot, nothrow)
 custo_t min(custo_t c1, custo_t c2, custo_t c3) {
     if (c1 < c2 && c1 < c3) {
@@ -58,18 +53,18 @@ custo_t min_custo(const uint8_t *parede, size_t n, size_t m) {
     if unlikely(custo == NULL) return UINT32_MAX;
 
     for (size_t j = 0; j < m; j++) {
-        const size_t fim = n - 1;
-        custo[pos(m, fim, j)] = (custo_t) parede[pos(m, fim, j)];
+        const size_t i = n - 1;
+        custo[pos(m, i, j)] = (custo_t) parede[pos(m, i, j)];
     }
 
-    for (size_t i = n - 1; i > 0; i++) {
+    for (size_t i = n - 1; i > 0; i--) {
         for (size_t j = 0; j < m; j++) {
             size_t ij = pos(m, i - 1, j);
             custo_t c0 = (custo_t) parede[ij];
 
-            custo_t c1 = (j > 0)? custo_em(custo, m, i, j - 1) : UINT32_MAX;
-            custo_t c2 = custo_em(custo, m, i, j);
-            custo_t c3 = (j < m - 1)? custo_em(custo, m, i, j + 1) : UINT32_MAX;
+            custo_t c1 = (j > 0)? custo[pos(m, i, j - 1)] : UINT32_MAX;
+            custo_t c2 = custo[pos(m, i, j)];
+            custo_t c3 = (j < m - 1)? custo[pos(m, i, j + 1)] : UINT32_MAX;
 
             custo[ij] = c0 + min(c1, c2, c3);
         }
@@ -164,6 +159,18 @@ void imprime_erro(const char *prog) {
     }
 }
 
+// void print_mat(const uint8_t *parede, size_t n, size_t m) {
+//     printf("n=%zu,  m=%zu\n\n", n, m);
+
+//     for (size_t i = 0; i < n; i++) {
+//         printf("%zu:\t", i);
+//         for (size_t j = 0; j < m; j++) {
+//             printf(" %hhu", parede[pos(m, i, j)]);
+//         }
+//         printf("\n");
+//     }
+// }
+
 int main(int argc, char const *argv[]) {
     size_t n, m;
     uint8_t *parede = ler_parede(&n, &m);
@@ -171,6 +178,7 @@ int main(int argc, char const *argv[]) {
         imprime_erro(argv[0]);
         return EXIT_FAILURE;
     }
+    // print_mat(parede, n, m);
 
     custo_t custo = min_custo(parede, n, m);
     free(parede);
