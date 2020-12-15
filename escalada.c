@@ -27,15 +27,33 @@
 
 typedef uint32_t custo_t;
 
-typedef struct parede {
-    size_t n, m;
-    uint8_t *dados;
-} parede_t;
+static inline attribute(const, hot, nothrow)
+size_t pos(size_t m, size_t i, size_t j) {
+    return i * m + j;
+}
 
-static inline attribute(pure, hot, nothrow)
-custo_t custo_em(const parede_t parede, size_t i, size_t j) {
-    size_t pos = i * parede.n + j;
-    return (custo_t) parede.dados[pos];
+static attribute(pure, hot, nothrow)
+custo_t min_custo(const uint8_t *parede, size_t n, size_t m) {
+    if unlikely(n == 0 || m == 0) {
+        return 0;
+    }
+
+    custo_t *custo = malloc(n * m * sizeof(custo_t));
+    if unlikely(custo == NULL) return UINT32_MAX;
+
+    for (size_t j = 0; j < m; j++) {
+        const size_t fim = n - 1;
+        custo[pos(m, fim, j)] = (custo_t) parede[pos(m, fim, j)];
+    }
+
+    for (size_t i = n - 1; i > 0; i++) {
+        for (size_t j = 0; j < m; j++) {
+
+        }
+    }
+
+    free(custo);
+    return UINT32_MAX;
 }
 
 #define ENTINV 0x1234
@@ -93,19 +111,12 @@ uint8_t *ler_dados(size_t n, size_t m) {
 }
 
 static attribute(cold, nothrow)
-parede_t ler_parede(void) {
-    size_t n, m;
-    if unlikely(!cscanf(2, "%zu %zu", &n, &m)) {
-        return (parede_t) {
-            .n = 0, .m = 0,
-            .dados = NULL
-        };
+uint8_t *ler_parede(size_t *n, size_t *m) {
+    if unlikely(!cscanf(2, "%zu %zu", n, m)) {
+        return NULL;
     }
 
-    return (parede_t) {
-        .n = n, .m = m,
-        .dados = ler_dados(n, m)
-    };
+    return ler_dados(*n, *m);
 }
 
 static attribute(cold, nothrow)
@@ -124,14 +135,15 @@ void imprime_erro(const char *prog) {
 }
 
 int main(int argc, char const *argv[]) {
-    parede_t parede = ler_parede();
-    if unlikely(parede.dados == NULL) {
+    size_t n, m;
+    uint8_t *parede = ler_parede(&n, &m);
+    if unlikely(parede == NULL) {
         imprime_erro(argv[0]);
         return EXIT_FAILURE;
     }
 
     custo_t custo = 0;
-    free(parede.dados);
+    free(parede);
 
 
     if unlikely(custo == UINT32_MAX) {
