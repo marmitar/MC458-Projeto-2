@@ -4,8 +4,10 @@
  * deve ser usada para imprimir o resultado da execucao de cada algoritmo.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <errno.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -30,7 +32,7 @@ typedef struct parede {
     uint8_t *dados;
 } parede_t;
 
-static inline attribute(pure)
+static inline attribute(pure, hot, nothrow)
 custo_t custo_em(const parede_t parede, size_t i, size_t j) {
     size_t pos = i * parede.n + j;
     return (custo_t) parede.dados[pos];
@@ -38,38 +40,77 @@ custo_t custo_em(const parede_t parede, size_t i, size_t j) {
 
 #define ENTINV 0x1234
 
-static
-int ler_parede(parede_t *parede) {
-    size_t n, m;
-    int rv = scanf("%zu %zu", &n, &m);
-    if (rv < 0) return errno;
-    if (rv < 2) return ENTINV;
+static attribute(format(scanf, 2, 3), nonnull, cold, nothrow)
+/**
+ * Checked `scanf`.
+ *
+ * Checa se o `scanf` fez todas as leituras esperadas,
+ * como recebido pelo parâmetro `expect`.
+ *
+ * Retorna true em caso de sucesso. Para erros, o valor
+ * do erro é marcado em `errno` e retorna false.
+ */
+bool cscanf(unsigned expect, const char *restrict fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        // usa `vfscanf` para tratar argumentos
+        // variados com mais facilidade
+        int rv = vscanf(fmt, args);
+        va_end(args);
+
+        // erro de leitura
+        if unlikely(rv < 0) {
+                return false;
+        }
+        // leitura incompleta
+        else if unlikely(rv < expect) {
+                errno = ENTINV;
+                return false;
+        }
+        return true;
+}
+
+
+static inline attribute(malloc, cold, nothrow)
+uint8_t *ler_dados(size_t n, size_t m) {
+    if unlikely(n == 0 || m == 0) {
+        return malloc(1);
+    };
 
     uint8_t *dados = malloc(n * m * sizeof(uint8_t));
-    if unlikely(dados == NULL) return errno;
+    if unlikely(dados == NULL) return NULL;
 
     for (size_t i = 0; i < n * m; i++) {
         uint8_t custo;
-        rv = scanf("%"SCNu8, &custo);
-        if unlikely(rv < 0) {
+        if unlikely(!cscanf(1, "%"SCNu8, &custo)) {
             free(dados);
-            return errno;
-        } else if unlikely(rv < 1) {
-            free(dados);
-            return ENTINV;
-        }
+            return NULL;
+        };
 
         dados[i] = custo;
     }
-
-    parede->n = n;
-    parede->m = m;
-    parede->dados = dados;
-    return 0;
+    return dados;
 }
 
-void imprime_erro(const char *prog, int err) {
-    switch (err) {
+static attribute(cold, nothrow)
+parede_t ler_parede(void) {
+    size_t n, m;
+    if unlikely(!cscanf(2, "%zu %zu", &n, &m)) {
+        return (parede_t) {
+            .n = 0, .m = 0,
+            .dados = NULL
+        };
+    }
+
+    return (parede_t) {
+        .n = n, .m = m,
+        .dados = ler_dados(n, m)
+    };
+}
+
+static attribute(cold, nothrow)
+void imprime_erro(const char *prog) {
+    switch (errno) {
         case 0:
             fprintf(stderr, "%s: erro desconhecido\n", prog);
             break;
@@ -83,10 +124,9 @@ void imprime_erro(const char *prog, int err) {
 }
 
 int main(int argc, char const *argv[]) {
-    parede_t parede;
-    int rv = ler_parede(&parede);
-    if (rv != 0) {
-        imprime_erro(argv[0], rv);
+    parede_t parede = ler_parede();
+    if unlikely(parede.dados == NULL) {
+        imprime_erro(argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -95,7 +135,7 @@ int main(int argc, char const *argv[]) {
 
 
     if unlikely(custo == UINT32_MAX) {
-        imprime_erro(argv[0], -1);
+        imprime_erro(argv[0]);
         return EXIT_FAILURE;
     }
 
