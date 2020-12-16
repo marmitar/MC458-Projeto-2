@@ -1,11 +1,11 @@
 \section{Definições}
 
-Um alpinista deve escalar uma parede representada por uma grade $n \times m$, em cada célula $(i, j)$ da grade tem um custo $C_{i, j} > 0$ associado. O alpinista deve começar na base, linha 1, e chegar no topo, linha $n$, tentando minizar o grau de periculosidade (custo total) do caminho. Quando ele se encoontra na célula $(i, j)$, com $1 \leq i < n$ e $1 \leq j \leq m$, os únicos movimentos possíveis são para as células $(i+1, j-1)$, $(i+1, j)$ ou $(i+1, j+1)$ que fazem parte da parede.
+Um alpinista deve escalar uma parede representada por uma grade $n \times m$, em cada célula $(i, j)$ da grade tem um custo $C_{i, j} > 0$ associado. O alpinista deve começar na base, linha 1, e chegar no topo, linha $n$, tentando minizar o grau de periculosidade (custo total) do caminho. Quando ele se encontra na célula $(i, j)$, com $1 \leq i < n$ e $1 \leq j \leq m$, os únicos movimentos possíveis são para as células $(i+1, j-1)$, $(i+1, j)$ ou $(i+1, j+1)$, se elas fazem parte da parede.
+
+\subsection{Definições Adicionais}
 
 \begin{definition}[Caminho até o Topo]
-    Um caminho até o topo $P$ é um caminho na parede que termina em alguma célula do topo, ou seja, temos $P = \left(p_1, \ldots, p_k\right)$, sendo que $k$ é a quantidade de vértices no caminho, $p_k = (n, j)$ e $1 \leq j \leq m$.
-
-    Note que, como $p_1 = (i, j)$ com $1 \leq i \leq n$ e $1 \leq j \leq m$, então $k > n - i$, dado q\red{???}
+    Considere um caminho $P = \left(p_1, \ldots, p_k\right)$, sendo $k$ a quantidade de vértices no caminho. Então, $P$ é um \textit{caminho até o topo} se ele termina em alguma célula do topo da parede, ou seja, $p_k = (n, j)$ para algum $1 \leq j \leq m$.
 \end{definition}
 
 \begin{definition}[Risco]
