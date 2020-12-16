@@ -15,20 +15,23 @@ Um alpinista deve escalar uma parede representada por uma grade $n \times m$, em
     \]
 \end{definition}
 
+\begin{definition}[Risco Mínimo]
+    O risco mínimo $R^*_{i, j}$ de uma célula $(i, j)$ é o risco de um caminho até o topo $P$ com menor custo total $R(P)$ dentre os caminhos partindo de $(i, j)$.
+\end{definition}
+
 \section{Solução Recorrente}
 
 \begin{theorem}[subestrutura ótima]
-    Seja $1 \leq i < n$ e $1 \leq j \leq m$, de forma que $k \geq 2$, e suponha um caminho $P = \left(p_1, p_2, \ldots, p_k\right)$ até o topo partindo de $p_1 = (i, j)$ e com risco mínimo $R(P)$. Então, o subcaminho $\left(p_2, \ldots, p_k\right)$ tem o menor risco possível partindo de $p_2$.
+    Seja $1 \leq i < n$ e $1 \leq j \leq m$, de forma que $k \geq 2$, e suponha um caminho $P = \left(p_1, p_2, \ldots, p_k\right)$ até o topo partindo de $p_1 = (i, j)$ e com risco mínimo $R(P) = R^*_{i, j}$. Então, o subcaminho $\left(p_2, \ldots, p_k\right)$ tem o menor risco possível partindo de $p_2$.
 \end{theorem}
 
 \begin{proof}
-    Seja $S = \left(p_2, \ldots, p_k\right)$ o subcaminho de $P$ mencionada e suponha um caminho até o topo $S' = \left(s_1, \ldots, s_l\right)$ partindo de $s_1 = p_2$, com risco $R(S')$ mínimo. Assim, temos o caminho $P' = \left(p_1, s_1, \ldots, s_l\right)$, com risco
+    Seja $S = \left(p_2, \ldots, p_k\right)$ o subcaminho de $P$ mencionada e suponha um caminho até o topo $S' = \left(s_1, \ldots, s_l\right)$ partindo de $s_1 = p_2$, com risco $R(S') = R^*_{p_2}$ mínimo. Assim, temos o caminho $P' = \left(p_1, s_1, \ldots, s_l\right)$, com risco
     \[
         R(P') = C_{p_1} + \sum_{1 \leq t \leq l} C_{s_t} = C_{i,j} + R(S')
     \]
 
-
-    Suponha, por contradição, $R(S') < R(S)$, então temos que
+    Suponha, por contradição, que $R(S') < R(S)$. Então, temos que
     \begin{align*}
         R(P') &= C_{i,j} + R(S')  \\
             &< C_{i,j} + R(S) \\
@@ -37,5 +40,5 @@ Um alpinista deve escalar uma parede representada por uma grade $n \times m$, em
     \end{align*}
     Logo, $P$ não é o caminho partindo de $p_1$ com menor risco, o que contradiz a suposição inicial.
 
-    Portanto, $R(S') \geq R(S)$, isto é, $S$ tem risco mínimo, dentre os caminhos partindo de $p_2$.
+    Portanto, $R(S') = R^*_{p_2} \geq R(S)$, isto é, $S$ tem risco mínimo, dentre os caminhos partindo de $p_2$.
 \end{proof}
