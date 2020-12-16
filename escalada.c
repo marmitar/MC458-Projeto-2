@@ -28,21 +28,21 @@
 
 
 // Custo ao longo de um caminho.
-typedef uint16_t custo_t;
-// Maior custo possível.
-#define CUSTO_MAX UINT16_MAX
-// Impressão de custo.
-#define PRIcusto PRIu16
+typedef uint16_t risco_t;
+// Maior risco possível.
+#define RISCO_MAX UINT16_MAX
+// Impressão de risco.
+#define PRIrisco PRIu16
 
-// Custo (perigo) de uma posição,
-typedef uint8_t perigo_t;
+// Custo (perigo) de uma posição.
+typedef uint8_t custo_t;
 
 
 static attribute(pure, hot, nothrow)
-custo_t min_custo(const perigo_t *parede, size_t n, size_t m);
+risco_t min_risco(const custo_t *parede, size_t n, size_t m);
 
 static attribute(malloc, cold, nothrow)
-perigo_t *leitura_parede(size_t *n, size_t *m);
+custo_t *leitura_parede(size_t *n, size_t *m);
 
 
 /* * * * */
@@ -71,24 +71,24 @@ void imprime_erro(const char *prog) {
 /* Main */
 int main(int argc, char const *argv[]) {
     size_t n, m;
-    // leitura das dimensões e da matriz
-    perigo_t *parede = leitura_parede(&n, &m);
+    // leitura das dimensões e da grade
+    custo_t *parede = leitura_parede(&n, &m);
     // problema de leitura
     if unlikely(parede == NULL) {
         imprime_erro(argv[0]);
         return EXIT_FAILURE;
     }
 
-    // menor custo na parede
-    custo_t custo = min_custo(parede, n, m);
+    // menor risco na parede
+    risco_t risco = min_risco(parede, n, m);
     free(parede);
     // erro interno do algoritmo
-    if unlikely(custo == CUSTO_MAX) {
+    if unlikely(risco == RISCO_MAX) {
         imprime_erro(argv[0]);
         return EXIT_FAILURE;
     }
 
-    printf("%"PRIcusto"\n", custo);
+    printf("%"PRIrisco"\n", risco);
     return EXIT_SUCCESS;
 }
 
@@ -100,7 +100,7 @@ static inline attribute(const, hot, nothrow)
 /**
  * Mínimo entre dois valores.
  */
-custo_t min(custo_t a, custo_t b) {
+risco_t min(risco_t a, risco_t b) {
     if (a < b) {
         return a;
     } else {
@@ -110,69 +110,66 @@ custo_t min(custo_t a, custo_t b) {
 
 static attribute(pure, hot, nothrow)
 /**
- * Encontra o custo do caminho de menro custo na parede.
+ * Encontra o risco do caminho ótimo na parede.
  *
- * A matriz de custo `parede` deve ser representada
- * em row-major.
- *
- * Retorna `CUSTO_MAX` em caso de erro.
+ * A grade de custo deve ser representada em row-major.
+ * Retorna `RISCO_MAX` em caso de erro.
  */
-custo_t min_custo(const perigo_t *parede, size_t n, size_t m) {
+risco_t min_risco(const custo_t *custo, size_t n, size_t m) {
     // sem custo para matrizes vazias
     if unlikely(n == 0 || m == 0) {
         return 0;
     }
 
-    // memorização do menor custo de i,j até o topo
+    // memorização do menor risco de i,j até o topo
     // representada em row-major
-    custo_t *custo = malloc(n * m * sizeof(custo_t));
-    if unlikely(custo == NULL) return CUSTO_MAX;
+    risco_t *risco = malloc(n * m * sizeof(risco_t));
+    if unlikely(risco == NULL) return RISCO_MAX;
 
-    // na última linha, o custo é apenas da própria célula
+    // na última linha, o risco é apenas da própria célula
     for (size_t j = 0; j < m; j++) {
         const size_t i = n - 1;
-        custo[m*i + j] = (custo_t) parede[m*i + j];
+        risco[m*i + j] = (risco_t) custo[m*i + j];
     }
     // as linhas seguintes (de cima para baixo) são calculadas
     // com base nos caminhos já calculados
     for (size_t i = n - 1; i > 0; i--) {
-        // custo dos caminhos possíveis a partir da cél. atual
-        // o caminho tem custo máximo quando é impossível
-        custo_t ce = CUSTO_MAX;      // esquerda
-        custo_t cs = CUSTO_MAX;      // superior
-        custo_t cd = custo[m*i + 0]; // direita
+        // risco dos caminhos possíveis a partir da cél. atual
+        // o caminho tem risco máximo quando é impossível
+        risco_t re = RISCO_MAX;      // esquerda
+        risco_t rs = RISCO_MAX;      // superior
+        risco_t rd = risco[m*i + 0]; // direita
 
         for (size_t j = 0; j < m - 1; j++) {
             size_t ij = m * (i - 1) + j;
             // custo da célula atual
-            custo_t c0 = (custo_t) parede[ij];
+            risco_t cij = (risco_t) custo[ij];
 
-            // custo dos caminhos possíveis a partir da cél. atual
-            // o caminho tem custo máximo quando é impossível
-            ce = cs; cs = cd;
-            cd = custo[m*i + j+1];
+            // caminhos possíveis baseados na célula anteriror
+            re = rs; rs = rd;
+            rd = risco[m*i + j+1];
 
             // o novo custo é o menor dos caminho e a célula atual
-            custo[ij] = c0 + min(cs, min(ce, cd));
+            risco[ij] = cij + min(rs, min(re, rd));
         }
 
+        re = rs; rs = rd;
         // última célula da linha
-        ce = cs; cs = cd;
         // não tem caminho á direita
-        cd = CUSTO_MAX;
+        rd = RISCO_MAX;
 
-        custo_t c0 = (custo_t) parede[m*(i-1) + m-1];
-        custo[m*(i-1) + m-1] = c0 + min(cs, min(ce, cd));
+        risco_t cij = (risco_t) custo[m*(i-1) + m-1];
+        risco[m*(i-1) + m-1] = cij + min(rs, min(re, rd));
     }
 
-    // retorna o menor dos custos partindo da base da parede
-    custo_t cmin = custo[m*0 + 0];
+    // retorna o menor dos risos partindo da base da parede
+    risco_t rmin = risco[m*0 + 0];
     for (size_t j = 1; j < m; j++) {
-        cmin = min(cmin, custo[m*0 + j]);
+        rmin = min(rmin, risco[m*0 + j]);
     }
 
-    free(custo);
-    return cmin;
+    free(risco);
+    return rmin;
 }
 
 
@@ -213,28 +210,28 @@ static attribute(malloc, cold, nothrow)
  * Leitura das dimensões e dos custos da parede.
  *
  * A matriz é armazenada em row-major.
- *
  * Retorna NULL em caso de erro.
  */
-perigo_t *leitura_parede(size_t *n, size_t *m) {
-    if unlikely(!cscanf(2, "%zu %zu", n, m)) {
+custo_t *leitura_parede(size_t *N, size_t *M) {
+    size_t n, m;
+    if unlikely(!cscanf(2, "%zu %zu", &n, &m)) {
         // erro de leitura
         return NULL;
     }
-    size_t N = *n, M = *m;
-    if unlikely(N == 0 || M == 0) {
+    *N = n; *M = m;
+    if unlikely(n == 0 || m == 0) {
         // aloca um byte, para manter um ponteiro
         // válido para `free`
         return malloc(1);
     };
 
-    perigo_t *custos = malloc(N * M * sizeof(perigo_t));
+    custo_t *custos = malloc(n * m * sizeof(custo_t));
     // erro de alocação
     if unlikely(custos == NULL) return NULL;
 
-    // leitura da matriz
-    for (size_t i = 0; i < N * M; i++) {
-        perigo_t custo;
+    // leitura da grade
+    for (size_t i = 0; i < n * m; i++) {
+        custo_t custo;
         if unlikely(!cscanf(1, "%"SCNu8, &custo)) {
             // erro de leitura
             free(custos);
