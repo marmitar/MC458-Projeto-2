@@ -141,6 +141,6 @@ O programa foi implementado em C, onde as matrizes $C$ e $R$ foram representadas
 
 Além disso, pode-se notar dos casos de teste que $n \leq 100$, $m \leq 2200$ e $C_{i, j} \leq 99$. Então, o custo $C_{i, j}$ foi representado por um inteiro de 8 bits (\texttt{uint8\_t}), já que sempre $C_{i, j} < 100 < 2^8$. O risco também pode ser limitado por
 \[
-    \max_{1 \leq i \leq n \text{~e~} 1 \leq j \leq m} \left\{R_{i, j}\right\} = \max_{1 \leq j \leq m} \left\{R_{n, j}\right\} \leq \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \leq \sum_{i = 1}^n 99 = 99 n \leq 9900 < 2^{16}
+    \max_{1 \leq i \leq n \text{~e~} 1 \leq j \leq m} \left\{R^*_{i, j}\right\} = \max_{1 \leq j \leq m} \left\{R^*_{1, j}\right\} \leq \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \leq \sum_{i = 1}^n 99 = 99 n \leq 9900 < 2^{16}
 \]
 Então, o risco foi representado com um inteiro de 16 bits (\texttt{uint16\_t}). De qualquer forma, o código fonte foi pensado de forma a facilitar a alteração dessas restrições.
