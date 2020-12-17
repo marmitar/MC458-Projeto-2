@@ -12,6 +12,9 @@
 #include <inttypes.h>
 
 
+/* * * * * */
+/* MACROS  */
+
 // Lista de atributos da função.
 #define attribute(...) \
     __attribute__((__VA_ARGS__))
@@ -27,26 +30,38 @@
 #define ENTINV 0x1234
 
 
-// Custo ao longo de um caminho.
-typedef uint16_t risco_t;
-// Maior risco possível.
-#define RISCO_MAX UINT16_MAX
+/* * * * * * * * * */
+/* TIPOS ESPECIAIS */
+
+// Largura dos inteiros de custo e risco.
+#define CUSTO_WIDTH 16
+#define RISCO_WIDTH  8
+
+// Algutinação de tokens.
+#define JOIN_(P, X, S) P ## X ## S
+#define JOIN(P, X, S) JOIN_(P, X, S)
+
+// Tipo do custo (perigo) de uma posição.
+typedef JOIN(uint,CUSTO_WIDTH,_t) custo_t;
+// Leitura de custo
+#define SCNcusto JOIN(SCNu,CUSTO_WIDTH,)
+
+// Tipo do risco (custo total) de um caminho.
+typedef JOIN(uint,RISCO_WIDTH,_t) risco_t;
+// Maior valor possível de risco.
+#define RISCO_MAX JOIN(UINT,RISCO_WIDTH,_MAX)
 // Impressão de risco.
-#define PRIrisco PRIu16
+#define PRIrisco JOIN(PRIu,CUSTO_WIDTH,)
 
-// Custo (perigo) de uma posição.
-typedef uint8_t custo_t;
 
+/* * * * */
+/* MAIN  */
 
 static attribute(pure, hot, nothrow)
 risco_t min_risco(const custo_t *parede, size_t n, size_t m);
 
 static attribute(malloc, cold, nothrow)
 custo_t *leitura_parede(size_t *n, size_t *m);
-
-
-/* * * * */
-/* MAIN  */
 
 static attribute(cold, nothrow)
 /**
@@ -232,7 +247,7 @@ custo_t *leitura_parede(size_t *N, size_t *M) {
     // leitura da grade
     for (size_t i = 0; i < n * m; i++) {
         custo_t custo;
-        if unlikely(!cscanf(1, "%"SCNu8, &custo)) {
+        if unlikely(!cscanf(1, "%"SCNcusto, &custo)) {
             // erro de leitura
             free(custos);
             return NULL;
