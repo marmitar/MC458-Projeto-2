@@ -90,11 +90,6 @@ O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminh
     ~
 
     Desse modo, só é necessário um novo acesso para a variável $\id{R-dir}$. Na última posição da linha, no entanto, $(i, m + 1)$ não é uma célula válida. Então, podemos usar a definição de risco mínimo expandida da seção \nameref{sec:formrec}, tratando essa posição de forma especial.
-
-    % Acumulador? $\infty$ em C, \texttt{uint8\_t} e \mintinline{c}{uint16_t}. Row MAJOR, $n \cdot m = 0 \leftrightarrow n = 0 \lor m = 0$. \alert{kw FIM?}. Testes: $C_{i, j} \leq 99 < 2^{8}$ e $n \leq 100$, então
-    % \[
-    %     \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \leq \sum_{i = 1}^n 99 \leq 9900 < 2^{16}
-    % \]
 \end{minipage}%
 \hfill%
 \begin{minipage}[t]{0.47\textwidth}
@@ -139,3 +134,13 @@ O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminh
         \li \kw{retorna} $\id{R-min}$
     \end{codebox}
 \end{minipage}
+
+\subsection{Implementação}
+
+O programa foi implementado em C, onde as matrizes $C$ e $R$ foram representadas em um buffer sequencial com ordem \textit{row-major}. Nessa representação, os elementos de uma mesma linha são guardados sequencialmente de forma que as posições $(i, j)$ e $(i, j + 1)$ ficam próximas na memória, mas $(i, j)$ e $(i + 1, j)$ podem ficar distantes.
+
+Além disso, pode-se notar dos casos de teste que $n \leq 100$, $m \leq 2200$ e $C_{i, j} \leq 99$. Então, o custo $C_{i, j}$ foi representado por um inteiro de 8 bits (\texttt{uint8\_t}), já que sempre $C_{i, j} < 100 < 2^8$. O risco também pode ser limitado por
+\[
+    \max_{1 \leq i \leq n \text{~e~} 1 \leq j \leq m} \left\{R_{i, j}\right\} = \max_{1 \leq j \leq m} \left\{R_{n, j}\right\} \leq \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \leq \sum_{i = 1}^n 99 = 99 n \leq 9900 < 2^{16}
+\]
+Então, o risco foi representado com um inteiro de 16 bits (\texttt{uint16\_t}). De qualquer forma, o código fonte foi pensado de forma a facilitar a alteração dessas restrições.
