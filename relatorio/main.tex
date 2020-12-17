@@ -22,13 +22,13 @@
 % url linking problems
 \def\url#1{\href{#1}{\texttt{#1}}}
 % vermelho
-\def\red#1{\textcolor{red}{#1}}
+\def\alert#1{\textcolor{red}{#1}}
 
 \def\lmref#1{\thmref[lema ]{#1}}
 
 \usepackage{xparse, caption, booktabs}
 \usepackage[hidelinks]{hyperref}
-\usepackage[nameinlink, brazilian]{cleveref}
+\usepackage[noabbrev, nameinlink, brazilian]{cleveref}
 \crefformat{equation}{#2eq.~#1#3}
 \crefformat{definition}{#2def.~#1#3}
 \crefformat{proof}{#2dem.~#1#3}
@@ -92,7 +92,9 @@
     \vskip1em
 }
 
-\usepackage{clrscode3e, wrapfig}
+\usepackage{clrscode3e, wrapfig, tikz}
+\usetikzlibrary{automata,positioning}
+\newcommand{\sectionbreak}{}
 \def\gets{~\leftarrow~}
 
 % \usepackage{showframe}

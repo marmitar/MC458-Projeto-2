@@ -43,7 +43,9 @@ Um alpinista deve escalar uma parede representada por uma grade $n \times m$, em
     Portanto, $R(S') = R^*_{p_2} \geq R(S)$, isto é, $S$ tem risco mínimo, dentre os caminhos partindo de $p_2$.
 \end{proof}
 
-\subsection{Fórmula de Recorrência}
+\begin{samepage}
+    \subsection{Fórmula de Recorrência} \label{sec:formrec}
+\end{samepage}
 
 Podemos notar que o caminho nas células do topo com risco mínimo devem ter apenas a própria célula, então, $R^*_{n, j} = C_{n, j}$  para $1 \leq j \leq m$. Agora, para as células que não estão no topo, vamos ter que qualquer caminho até o topo, inclusivo um caminho ótimo $P = \left(p_1, \ldots, p_k\right)$, terá no mínimo 2 vértices, ou seja, $k \geq 2$. Portanto, pela subestrutura ótima, temos que $R^*_{p_1} = C_{p_1} + R^*_{p_2}$.
 
@@ -66,7 +68,36 @@ O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminh
     R^* = \min_{1 \leq j \leq m}\left\{R^*_{1, j}\right\}
 \]
 
-\begin{minipage}[t]{0.5\textwidth}
+\begin{minipage}[t]{0.45\textwidth}
+    \section{Algoritmo}
+
+    A implementação do algoritmo segue naturalmente da recorrência apresentada, com pequenas modificações. Para evitar tratamento das bordas da matriz $R$ e acessos repetidos, as variáveis $\id{R-esq}$, $\id{R-cen}$ e $\id{R-esq}$ foram usadas como uma janela dos possíveis risco mínimos partindo de $(i, j)$, como mostra a \cref{fig:janela}.
+
+    \vskip1em
+    ~
+
+    \begin{minipage}{\textwidth}
+        \centering
+        \begingroup
+            \input{acesso}
+        \endgroup
+        \captionof{figure}{Janela de possíveis subcaminhos.}
+        \label{fig:janela}
+
+        ~
+    \end{minipage}
+
+    ~
+
+    Desse modo, só é necessário um novo acesso para a variável $\id{R-dir}$. Na última posição da linha, no entanto, $(i, m + 1)$ não é uma célula válida. Então, podemos usar a definição de risco mínimo expandida da seção \nameref{sec:formrec}, tratando essa posição de forma especial.
+
+    % Acumulador? $\infty$ em C, \texttt{uint8\_t} e \mintinline{c}{uint16_t}. Row MAJOR, $n \cdot m = 0 \leftrightarrow n = 0 \lor m = 0$. \alert{kw FIM?}. Testes: $C_{i, j} \leq 99 < 2^{8}$ e $n \leq 100$, então
+    % \[
+    %     \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \leq \sum_{i = 1}^n 99 \leq 9900 < 2^{16}
+    % \]
+\end{minipage}%
+\hfill%
+\begin{minipage}[t]{0.47\textwidth}
     \begin{codebox}
         \Procname{$\proc{Risco-Mínimo}(C, n, m)$}
         \li Seja $R[1 \twodots n][1 \twodots m]$ uma nova matriz.
@@ -107,8 +138,4 @@ O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminh
             \End
         \li \kw{retorna} $\id{R-min}$
     \end{codebox}
-\end{minipage}%
-\hfill%
-\begin{minipage}[t]{0.45\textwidth}
-    \section{Implementação}
 \end{minipage}
