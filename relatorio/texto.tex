@@ -55,8 +55,60 @@ Como $p_1$ deve ser uma célula válida, então temos $1 \leq i < n$ e $1 \leq j
 Quando $j - 1 < 1$ ou $j + 1 > n$, podemos expandir a definição de risco mínimo para que $R^*_{i, j} = \infty$, mantendo a válidade da recorrência. Portanto, temos a seguinte relação de recorrência:
 \begin{align*}
     R^*_{n, j} &= C_{n, j} && \text{para $1 \leq j \leq m$}\\
-    R^*_{i, j} &= \infty && \text{para $1 \leq i \leq n$ e $j = 0$ ou $j = m + 1$} \\
+    R^*_{i, j} &= \infty && \text{para $1 \leq i \leq n$ e $j < 1$ ou $j > m$} \\
     R^*_{i, j} &= C_{i, j} + \min\left\{R^*_{i+1,j-1}, R^*_{i+1,j}, R^*_{i+1,j+1}\right\} && \text{para $1 \leq i < n$ e $1 \leq j \leq m$}
 \end{align*}
 
 Note que cada linha $i$ depende apenas da linhas superiores $i+1$, com exceção do caso base $i = n$, que não depende de outros custos. Então, podemos calcular toda a matriz de risco mínimo $R^*_{i, j}$ a partir do topo da parede, sem necessidade de recursão ou memorização.
+
+O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminhos partindo da base, então
+\[
+    R^* = \min_{1 \leq j \leq m}\left\{R^*_{1, j}\right\}
+\]
+
+\begin{minipage}[t]{0.5\textwidth}
+    \begin{codebox}
+        \Procname{$\proc{Risco-Mínimo}(C, n, m)$}
+        \li Seja $R[1 \twodots n][1 \twodots m]$ uma nova matriz.
+        \li
+        \li \kw{para} $j = 1$ \kw{até} $m$
+            \Do
+        \li     $R[n][j] \gets C[n][j]$
+            \End
+        \li
+        \li \kw{para} $i = n - 1$ descendo \kw{até} $1$
+            \Do
+        \li     $\id{R-esq} \gets \infty$
+        \li     $\id{R-cen} \gets \infty$
+        \li     $\id{R-dir} \gets C[i][1]$
+        \li
+        \li     \kw{para} $j = 1$ \kw{até} $m - 1$
+                \Do
+        \li         $\id{R-esq} \gets \id{R-cen}$
+        \li         $\id{R-cen} \gets \id{R-dir}$
+        \li         $\id{R-dir} \gets R[i+1][j+1]$
+        \li
+        \li         $\id{R-min} \gets \min\left(\id{R-esq}, \id{R-cen}, \id{R-dir}\right)$
+        \li         $R[i][j] \gets C[i][j] + \id{R-min}$
+                \End
+        \li
+        \li     $\id{R-esq} \gets \id{R-cen}$
+        \li     $\id{R-cen} \gets \id{R-dir}$
+        \li     $\id{R-dir} \gets \infty$
+        \li
+        \li     $\id{R-min} \gets \min\left(\id{R-esq}, \id{R-cen}, \id{R-dir}\right)$
+        \li     $R[i][m] \gets C[i][m] + \id{R-min}$
+            \End
+        \li
+        \li $\id{R-min} \gets R[1][1]$
+        \li \kw{para} $j = 2$ \kw{até} $m$
+            \Do
+        \li     $\id{R-min} \gets \min(\id{R-min},~R[1][j])$
+            \End
+        \li \kw{retorna} $\id{R-min}$
+    \end{codebox}
+\end{minipage}%
+\hfill%
+\begin{minipage}[t]{0.45\textwidth}
+    \section{Implementação}
+\end{minipage}

@@ -137,7 +137,7 @@ risco_t min_risco(const custo_t *custo, size_t n, size_t m) {
         // risco dos caminhos possíveis a partir da cél. atual
         // o caminho tem risco máximo quando é impossível
         risco_t re = RISCO_MAX;      // esquerda
-        risco_t rs = RISCO_MAX;      // superior
+        risco_t rc = RISCO_MAX;      // central
         risco_t rd = risco[m*i + 0]; // direita
 
         for (size_t j = 0; j < m - 1; j++) {
@@ -146,20 +146,20 @@ risco_t min_risco(const custo_t *custo, size_t n, size_t m) {
             risco_t cij = (risco_t) custo[ij];
 
             // caminhos possíveis baseados na célula anteriror
-            re = rs; rs = rd;
+            re = rc; rc = rd;
             rd = risco[m*i + j+1];
 
             // o novo custo é o menor dos caminho e a célula atual
-            risco[ij] = cij + min(rs, min(re, rd));
+            risco[ij] = cij + min(rc, min(re, rd));
         }
 
-        re = rs; rs = rd;
+        re = rc; rc = rd;
         // última célula da linha
         // não tem caminho á direita
         rd = RISCO_MAX;
 
         risco_t cij = (risco_t) custo[m*(i-1) + m-1];
-        risco[m*(i-1) + m-1] = cij + min(rs, min(re, rd));
+        risco[m*(i-1) + m-1] = cij + min(rc, min(re, rd));
     }
 
     // retorna o menor dos risos partindo da base da parede
