@@ -69,9 +69,9 @@ O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminh
 \]
 
 \begin{minipage}[t]{0.45\textwidth}
-    \section{Algoritmo}
+    \section{Algoritmo} \label{sec:alg}
 
-    A implementação do algoritmo segue naturalmente da recorrência apresentada, com pequenas modificações. Para evitar tratamento das bordas da matriz $R$ e acessos repetidos, as variáveis $\id{R-esq}$, $\id{R-cen}$ e $\id{R-esq}$ foram usadas como uma janela dos possíveis risco mínimos partindo de $(i, j)$, como mostra a \cref{fig:janela}.
+    A implementação do algoritmo \alert{PD, 00} segue naturalmente da recorrência apresentada, com pequenas modificações. Para evitar tratamento das bordas da matriz $R$ e acessos repetidos, as variáveis $\id{R-esq}$, $\id{R-cen}$ e $\id{R-esq}$ foram usadas como uma janela dos possíveis risco mínimos partindo de $(i, j)$, como mostra a \cref{fig:janela}.
 
     \vskip1em
     ~
@@ -143,4 +143,27 @@ Além disso, pode-se notar dos casos de teste que $n \leq 100$, $m \leq 2200$ e 
 \[
     \max_{1 \leq i \leq n \text{~e~} 1 \leq j \leq m} \left\{R^*_{i, j}\right\} = \max_{1 \leq j \leq m} \left\{R^*_{1, j}\right\} \leq \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \leq \sum_{i = 1}^n 99 = 99 n \leq 9900 < 2^{16}
 \]
-Então, o risco foi representado com um inteiro de 16 bits (\texttt{uint16\_t}). De qualquer forma, o código fonte foi pensado de forma a facilitar a alteração dessas restrições.
+Então, o risco foi representado com um inteiro de 16 bits (\texttt{uint16\_t}). Por causa disso, o valor de infinito foi usado como \mintinline{c}{UINT16_MAX}, que é garantidamente maior ou igual a $2^{16}$. De qualquer forma, o código fonte foi pensado de forma a facilitar a alteração dessas restrições.
+
+\section{Complexidade}
+
+Pelo algoritmo apresentado na \cref{sec:alg}, podemos assumir que as operações aritméticas e as de acesso tem ordem $\Theta(1)$. Então, podemos dizer que elas executam com um tempo limitado por pelas constantes $a \leq b$. Assim, o tempo de execução do algoritmo, para $n$ e $m$ positivos, pode ser limitado por:
+\begin{align*}
+    T(n, m) &\leq a + \sum_{j = 1}^m a + \sum_{i = 1}^{n - 1} \left( a + \sum_{j = 1}^{m - 1} a \right) + \sum_{j = 2}^m a \\
+    &\leq a + m a + n m a + m a \\
+    &= (1 + (2 + n) m) a \\
+    &\leq 4 a \cdot n m
+\end{align*}
+Da mesma forma, temos que
+\[
+    T(n, m) \geq b + \sum_{j = 1}^m b + \sum_{i = 1}^{n - 1} \left( b + \sum_{j = 1}^{m - 1} b \right) + \sum_{j = 2}^m b \geq b \cdot n m
+\]
+
+Logo, a complexidade de tempo do algoritmo é $T(n, m) \in \Theta(n m)$.
+
+Para o espaço, podemos ver que o único armazenamento adicional é da matriz $R$, com dimensões $n \times m$. Como a função não faz chamadas recursivas, temos que
+\[
+    E(n, m) = n m + \Theta(1) = \Theta(n m)
+\]
+
+Assumindo que $m \in O(n)$, podemos afirmar então que a complexidade de tempo é $T(n) \in O\left(n^2\right)$ e de espaço também é $E(n) \in O\left(n^2\right)$.
