@@ -34,8 +34,8 @@
 /* TIPOS ESPECIAIS */
 
 // Largura dos inteiros de custo e risco.
-#define CUSTO_WIDTH 16
-#define RISCO_WIDTH  8
+#define CUSTO_WIDTH  8
+#define RISCO_WIDTH 16
 
 // Algutinação de tokens.
 #define JOIN_(P, X, S) P ## X ## S
