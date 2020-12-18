@@ -40,30 +40,32 @@ Um alpinista deve escalar uma parede representada por uma grade $n \times m$, em
     \end{align*}
     Logo, $P$ não é o caminho partindo de $p_1$ com menor risco, o que contradiz a suposição inicial.
 
-    Portanto, $R(S') = R^*_{p_2} \geq R(S)$, isto é, $S$ tem risco mínimo, dentre os caminhos partindo de $p_2$.
+    ~
+
+    Portanto, $R(S) \leq R(S') = R^*_{p_2}$, isto é, $S$ tem risco mínimo dentre os caminhos partindo de $p_2$.
 \end{proof}
 
 \begin{samepage}
     \subsection{Fórmula de Recorrência} \label{sec:formrec}
 \end{samepage}
 
-Podemos notar que o caminho nas células do topo com risco mínimo devem ter apenas a própria célula, então, $R^*_{n, j} = C_{n, j}$  para $1 \leq j \leq m$. Agora, para as células que não estão no topo, vamos ter que qualquer caminho até o topo, inclusive um caminho ótimo $P = \left(p_1, \ldots, p_k\right)$, terá no mínimo 2 vértices, ou seja, $k \geq 2$. Portanto, pela subestrutura ótima, temos que $R^*_{p_1} = C_{p_1} + R^*_{p_2}$.
+Podemos notar que o caminho das células do topo com risco mínimo devem conter apenas a própria célula, então, $R^*_{n, j} = C_{n, j}$  para $1 \leq j \leq m$. Agora, para as células que não estão no topo, vamos ter que qualquer caminho até o topo, inclusive um caminho ótimo $P = \left(p_1, \ldots, p_k\right)$, terá no mínimo 2 vértices, ou seja, $k \geq 2$. Portanto, pela subestrutura ótima, temos que $R^*_{p_1} = C_{p_1} + R^*_{p_2}$.
 
 Como $p_1$ deve ser uma célula válida, então temos $1 \leq i < n$ e $1 \leq j \leq m$ tal que $p_1 = (i, j)$. No entanto, o alpinista só pode ir de $(i, j)$ para as células superiores esquerda, central ou direita, isto é, $p_2 = (i+1, j-1)$ ou $p_2 = (i+1, j)$ ou $p_2 = (i+1, j+1)$, dado que essas posições são válidas. No caso geral, em que $1 < j < m$, temos que
 \[
     R^*_{i, j} = \min\left\{C_{i, j} + R^*_{i+1,j-1}, C_{i, j} + R^*_{i+1,j}, C_{i, j} + R^*_{i+1,j+1}\right\}
 \]
 
-Quando $j - 1 < 1$ ou $j + 1 > n$, podemos expandir a definição de risco mínimo para que $R^*_{i, j} = \infty$, mantendo a válidade da recorrência. Assim, temos a seguinte relação recorrente:
+Quando $j - 1 < 1$ ou $j + 1 > n$, podemos expandir a definição de risco mínimo para que $R^*_{i, j} = \infty$, mantendo a válidade do caso geral. Assim, temos a seguinte relação recorrente:
 \begin{align*}
     R^*_{n, j} &= C_{n, j} && \text{para $1 \leq j \leq m$}\\
     R^*_{i, j} &= \infty && \text{para $1 \leq i \leq n$ e $j < 1$ ou $j > m$} \\
     R^*_{i, j} &= C_{i, j} + \min\left\{R^*_{i+1,j-1}, R^*_{i+1,j}, R^*_{i+1,j+1}\right\} && \text{para $1 \leq i < n$ e $1 \leq j \leq m$}
 \end{align*}
 
-Note que cada linha $i$ depende apenas da linha superior $i+1$, com exceção do caso base $i = n$, que não depende de outros custos. Então, podemos calcular toda a matriz de risco mínimo $R^*_{i, j}$ a partir do topo da parede, sem necessidade de recursão ou memorização.
+Note que cada linha $i$ depende apenas da linha superior $i+1$, com exceção do caso base $i = n$, que não depende de subcaminhos. Então, podemos calcular toda a matriz de risco mínimo $R^*_{i, j}$ a partir do topo da parede, sem necessidade de recursão ou memorização.
 
-O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminhos partindo da base, então
+O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminhos partindo da base, isto é
 \[
     R^* = \min_{1 \leq j \leq m}\left\{R^*_{1, j}\right\}
 \]
@@ -71,7 +73,7 @@ O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminh
 \noindent\begin{minipage}[t]{0.45\textwidth}
     \section{Algoritmo} \label{sec:alg}
 
-    O algoritmo foi baseado em programação dinâmica, seguindo a recorrência apresentada, com pequenas modificações. Para evitar tratamento das bordas da matriz $R$ e acessos repetidos, as variáveis $\id{R-esq}$, $\id{R-cen}$ e $\id{R-esq}$ foram usadas como uma janela dos possíveis risco mínimos partindo de $(i, j)$, como mostra a \cref{fig:janela}.
+    O algoritmo foi baseado em programação dinâmica, seguindo a recorrência apresentada com pequenas modificações. Para evitar tratamento das bordas da matriz $R$ e acessos repetidos, as variáveis $\id{R-esq}$, $\id{R-cen}$ e $\id{R-esq}$ foram usadas como uma janela dos possíveis risco mínimos partindo de $(i, j)$, como mostra a \cref{fig:janela}.
 
     \vskip0.5em
     ~
@@ -143,15 +145,22 @@ O resultado final $R^*$ do algoritmo é apenas menor dos riscos dentre os caminh
 O programa foi implementado em linguagem C, onde as matrizes $C$ e $R$ foram representadas em um buffer sequencial com ordem \textit{row-major}. Nessa representação, os elementos de uma mesma linha são guardados sequencialmente de forma que as posições $(i, j)$ e $(i, j + 1)$ ficam próximas na memória, mas $(i, j)$ e $(i + 1, j)$ podem ficar distantes.
 
 Além disso, pode-se notar dos casos de teste que $n \leq 100$, $m \leq 2200$ e $C_{i, j} \leq 99$. Então, o custo $C_{i, j}$ foi representado por um inteiro de 8 bits (\texttt{uint8\_t}), já que sempre $C_{i, j} < 100 < 2^8$. O risco também pode ser limitado por
-\[
-    \max_{1 \leq i \leq n \text{~e~} 1 \leq j \leq m} \left\{R^*_{i, j}\right\} = \max_{1 \leq j \leq m} \left\{R^*_{1, j}\right\} \leq \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \leq \sum_{i = 1}^n 99 = 99 n \leq 9900 < 2^{16}
-\]
+\begin{align*}
+    R^*_p &\leq \max_{1 \leq i \leq n \text{~e~} 1 \leq j \leq m} \left\{R^*_{i, j}\right\} \\
+        &= \max_{1 \leq j \leq m} \left\{R^*_{1, j}\right\} \\
+        &\leq \sum_{i = 1}^n \max_{1 \leq j \leq m}\left\{C_{i, j}\right\} \\
+        &\leq \sum_{i = 1}^n 99 \\
+        &= 99 n \\
+        &\leq 9900 \\
+        &< 2^{16}
+\end{align*}
 
 Então, o risco foi representado com um inteiro de 16 bits (\texttt{uint16\_t}). Por causa disso, o valor de infinito foi usado como \mintinline{c}{UINT16_MAX}, que é garantidamente maior ou igual a $2^{16}$. De qualquer forma, o código fonte foi pensado de forma a facilitar a alteração dessas restrições, com as macros \texttt{CUSTO\_WIDTH} e \texttt{RISCO\_WIDTH}.
 
 \section{Complexidade}
 
-Podemos assumir que as operações aritméticas e as de acesso tem ordem $\Theta(1)$. Logo, o tempo de execução $t_i$ de cada uma dessas operações $i$ pode ser limitado pelas constantes $a \leq t_i \leq b$. Assim, o tempo do algortimo apresentado na \hyperref[sec:alg]{seção anterior}, para $n$ e $m$ positivos, pode ser majorado por:
+Podemos assumir que as operações aritméticas e as de acesso tem ordem $\Theta(1)$. Logo, o tempo de execução $t_i$ de cada uma dessas operações $i$ pode ser limitado pelas constantes $a \leq t_i \leq b$. Assim, o tempo do algortimo apresentado na \hyperref[sec:alg]{seção anterior}, para $n$ e $m$ positivos, pode ser majorado por
+
 \begin{align*}
     T(n, m) &\geq a + \sum_{j = 1}^m a + \sum_{i = 1}^{n - 1} \left( a + \sum_{j = 1}^{m - 1} a \right) + \sum_{j = 2}^m a \\
     &= a + m a + (n - 1) (1 + (m - 1) a) + (m - 1) a \\
